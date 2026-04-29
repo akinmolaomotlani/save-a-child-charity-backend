@@ -21,11 +21,13 @@ app.use(helmet());
 // CORS
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: [
+      "http://localhost:5173",
+      "https://save-a-child-charity.vercel.app",
+    ],
     credentials: true,
   }),
 );
-
 // JSON parser
 app.use(express.json());
 
