@@ -19,17 +19,6 @@ app.post("/webhook", express.raw({ type: "application/json" }), stripeWebhook);
 app.use(helmet());
 
 // CORS
-// app.use(
-//   cors({
-//     origin: [
-//       "http://localhost:5173",
-//       "https://save-a-child-charity.vercel.app",
-//     ],
-//     credentials: true,
-//   }),
-// );
-
-// CORS
 app.use(
   cors({
     origin: [
