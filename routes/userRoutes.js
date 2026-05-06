@@ -7,10 +7,17 @@ const {
   updateUser,
   deleteUser,
   createUser,
+  verifyUser,
 } = require("../controlers/userController");
 
 // GET all users
 router.get("/", getUsers);
+
+//VERIFY ROUTER
+// router.get("/verify", verifyUser);
+router.get("/verify", (req, res) => {
+  res.send("VERIFY ROUTE HIT");
+});
 
 // GET single user
 router.get("/:id", getUserById);
