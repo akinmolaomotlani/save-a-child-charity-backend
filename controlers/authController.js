@@ -3,6 +3,7 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/user");
 const crypto = require("crypto");
 const nodemailer = require("nodemailer");
+const sendEmail = require("../utils/mailer");
 
 // REGISTER
 exports.register = async (req, res) => {
@@ -20,11 +21,9 @@ exports.register = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // 👇 GENERATE TOKEN HERE
     const token = crypto.randomBytes(32).toString("hex");
     const tokenExpires = Date.now() + 1000 * 60 * 60;
 
-    // 👇 INCLUDE IT HERE
     const user = await User.create({
       name,
       email,
@@ -33,34 +32,25 @@ exports.register = async (req, res) => {
       verificationTokenExpires: tokenExpires,
     });
 
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-    });
-
     const verificationLink = `https://save-a-child-charity-backend.onrender.com/verify?token=${token}`;
 
-    // ✅ SEND EMAIL HERE
-    await transporter.sendMail({
+    // 🔥 CRITICAL FIX: don't let email block response
+    sendEmail({
       to: user.email,
       subject: "Verify your email",
       html: `
         <p>Click the link below to verify your email:</p>
         <a href="${verificationLink}">${verificationLink}</a>
       `,
-    });
+    }).catch((err) => console.error("Email failed:", err));
 
-    // JWT (login token)
     const jwtToken = jwt.sign(
       { id: user._id, role: user.role },
       process.env.JWT_SECRET || "secretkey",
       { expiresIn: "7d" },
     );
 
-    res.status(201).json({
+    return res.status(201).json({
       message: "User registered successfully. Please verify your email.",
       token: jwtToken,
       user: {
@@ -69,11 +59,10 @@ exports.register = async (req, res) => {
         email: user.email,
         role: user.role,
       },
-      verificationToken: token, // ⚠️ only for testing (remove in production)
     });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Server error" });
+    return res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -127,12 +116,15 @@ exports.login = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
 exports.verifyUser = async (req, res) => {
   try {
     const { token } = req.query;
 
     if (!token) {
-      return res.status(400).json({ message: "No token provided" });
+      return res.redirect(
+        "https://save-a-child-charity-frontend.vercel.app/verify?success=false",
+      );
     }
 
     const user = await User.findOne({
@@ -141,7 +133,9 @@ exports.verifyUser = async (req, res) => {
     });
 
     if (!user) {
-      return res.status(400).json({ message: "Invalid or expired token" });
+      return res.redirect(
+        "https://save-a-child-charity-frontend.vercel.app/verify?success=false",
+      );
     }
 
     user.isVerified = true;
@@ -150,8 +144,13 @@ exports.verifyUser = async (req, res) => {
 
     await user.save();
 
-    res.status(200).json({ message: "User verified successfully" });
+    // ✅ SUCCESS REDIRECT
+    res.redirect(
+      "https://save-a-child-charity-frontend.vercel.app/verify?success=true",
+    );
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.redirect(
+      "https://save-a-child-charity-frontend.vercel.app/verify?success=false",
+    );
   }
 };
