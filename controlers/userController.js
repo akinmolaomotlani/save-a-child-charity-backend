@@ -35,17 +35,21 @@ exports.createUser = async (req, res) => {
     await user.save();
 
     // ✅ TODO: send email here (next step)
-    const verifyURL = `http://localhost:5000/verify?token=${token}`;
+    const verifyURL = `https://save-a-child-charity-backend.onrender.com/verify?token=${token}`;
 
-    await sendEmail({
-      to: user.email,
-      subject: "Verify your account",
-      html: `
-    <h2>Hello ${user.name}</h2>
-    <p>Click below to verify your account:</p>
-    <a href="${verifyURL}">Verify Account</a>
-  `,
-    });
+    try {
+      await sendEmail({
+        to: user.email,
+        subject: "Verify your account",
+        html: `
+      <h2>Hello ${user.name}</h2>
+      <p>Click below to verify your account:</p>
+      <a href="${verifyURL}">Verify Account</a>
+    `,
+      });
+    } catch (err) {
+      console.log("Email failed but user was created:", err.message);
+    }
     res.status(201).json({
       success: true,
       message: "User created. Please check your email to verify your account.",
