@@ -14,10 +14,7 @@ const {
 router.get("/", getUsers);
 
 //VERIFY ROUTER
-// router.get("/verify", verifyUser);
-router.get("/verify", (req, res) => {
-  res.send("VERIFY ROUTE HIT");
-});
+router.get("/verify", verifyUser);
 
 // GET single user
 router.get("/:id", getUserById);
