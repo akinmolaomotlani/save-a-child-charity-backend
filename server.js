@@ -30,6 +30,8 @@ const io = new Server(server, {
   },
 });
 
+app.set("trust", 1);
+
 // ✅ SOCKET CONNECTION
 io.on("connection", (socket) => {
   console.log("🟢 User connected:", socket.id);

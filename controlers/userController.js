@@ -48,7 +48,9 @@ exports.createUser = async (req, res) => {
     `,
       });
     } catch (err) {
-      console.log("Email failed but user was created:", err.message);
+      // console.log("Email failed but user was created:", err.message);
+
+      console.error("FULL EMAIL ERROR:", err);
     }
     res.status(201).json({
       success: true,
