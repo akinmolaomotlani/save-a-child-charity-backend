@@ -50,16 +50,16 @@ exports.register = async (req, res) => {
       { expiresIn: "7d" },
     );
 
-    return res.status(201).json({
-      message: "User registered successfully. Please verify your email.",
-      token: jwtToken,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-      },
-    });
+    // return res.status(201).json({
+    //   message: "User registered successfully. Please verify your email.",
+    //   token: jwtToken,
+    //   user: {
+    //     id: user._id,
+    //     name: user.name,
+    //     email: user.email,
+    //     role: user.role,
+    //   },
+    // });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: "Server error" });
