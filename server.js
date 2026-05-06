@@ -5,12 +5,48 @@ const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
+const http = require("http"); // ✅ NEW
+const { Server } = require("socket.io"); // ✅ NEW
 
 const connectDB = require("./config/db");
-const stripeWebhook = require("./webhooks/stripeWebhook"); // ✅ FIXED
-const messageRoutes = require("./routes/messageRoutes"); // ✅ FIXED
+const stripeWebhook = require("./webhooks/stripeWebhook");
+const messageRoutes = require("./routes/messageRoutes");
 const userRoutes = require("./routes/userRoutes");
+const authRoutes = require("./routes/authRoutes");
+
 const app = express();
+
+// ✅ CREATE HTTP SERVER (IMPORTANT)
+const server = http.createServer(app);
+
+// ✅ SOCKET.IO SETUP
+const io = new Server(server, {
+  cors: {
+    origin: [
+      "http://localhost:5173",
+      "https://save-a-child-charity-frontend.vercel.app",
+    ],
+    credentials: true,
+  },
+});
+
+// ✅ SOCKET CONNECTION
+io.on("connection", (socket) => {
+  console.log("🟢 User connected:", socket.id);
+
+  // join user room
+  socket.on("join", (userId) => {
+    socket.join(userId);
+    console.log("📥 Joined room:", userId);
+  });
+
+  socket.on("disconnect", () => {
+    console.log("🔴 User disconnected:", socket.id);
+  });
+});
+
+// ✅ MAKE IO AVAILABLE IN ROUTES
+app.set("io", io);
 
 // ✅ Stripe webhook MUST come before express.json()
 app.post("/webhook", express.raw({ type: "application/json" }), stripeWebhook);
@@ -28,6 +64,7 @@ app.use(
     credentials: true,
   }),
 );
+
 // JSON parser
 app.use(express.json());
 
@@ -40,16 +77,16 @@ app.use(
 );
 
 // Routes
+app.use("/api/auth", authRoutes);
 app.use("/api/auth", require("./routes/authRoutes"));
+app.use("/", authRoutes);
 app.use("/api/donations", require("./routes/donationRoutes"));
 app.use("/api/volunteers", require("./routes/volunteerRoutes"));
 app.use("/api/payments", require("./routes/paymentRoutes"));
 app.use("/api/users", userRoutes);
-
-// ✅ MESSAGE ROUTE
 app.use("/api/messages", messageRoutes);
 
-// Start server after DB connects
+// ✅ START SERVER (IMPORTANT: use server.listen NOT app.listen)
 connectDB().then(() => {
-  app.listen(5000, () => console.log("Server running on port 5000"));
+  server.listen(5000, () => console.log("🚀 Server running on port 5000"));
 });

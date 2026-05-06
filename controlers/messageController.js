@@ -1,9 +1,10 @@
 const Message = require("../models/Message");
+const mongoose = require("mongoose"); // ✅ ADD THIS
 
 /* SEND MESSAGE */
 exports.sendMessage = async (req, res) => {
   try {
-    const { sender, receiver, subject, content } = req.body;
+    const { sender, receiver, subject, content, threadId } = req.body;
 
     if (!sender || !receiver || !content) {
       return res.status(400).json({
@@ -11,12 +12,25 @@ exports.sendMessage = async (req, res) => {
       });
     }
 
+    // ✅ FIX STARTS HERE
+    const existingThread = await Message.findOne({
+      $or: [
+        { sender, receiver },
+        { sender: receiver, receiver: sender },
+      ],
+    });
+
+    const finalThreadId =
+      threadId || existingThread?.threadId || new mongoose.Types.ObjectId();
+    // ✅ FIX ENDS HERE
+
     const message = await Message.create({
       sender,
       receiver,
       subject: subject || "No Subject",
       content,
       read: false,
+      threadId: finalThreadId,
     });
 
     const populatedMessage = await Message.findById(message._id)
@@ -65,23 +79,27 @@ exports.getMessages = async (req, res) => {
       .populate("receiver", "name email")
       .sort({ createdAt: -1 });
 
-    res.json({ messages });
+    res.status(200).json({
+      success: true,
+      messages,
+    });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json({
+      success: false,
+      message: err.message,
+    });
   }
 };
 
-/* GET UNREAD USER MESSAGES */
-exports.getUnreadMessages = async (req, res) => {
+/* GET THREAD MESSAGES (NEW) */
+exports.getThreadMessages = async (req, res) => {
   try {
-    const userId = req.params.id;
+    const { threadId } = req.params;
 
-    const messages = await Message.find({
-      receiver: userId,
-      read: false,
-    })
+    const messages = await Message.find({ threadId })
       .populate("sender", "name email")
-      .sort({ createdAt: -1 });
+      .populate("receiver", "name email")
+      .sort({ createdAt: 1 });
 
     res.json({ messages });
   } catch (err) {
@@ -90,11 +108,12 @@ exports.getUnreadMessages = async (req, res) => {
 };
 
 /* MARK ALL USER MESSAGES AS READ */
+
 exports.markAsRead = async (req, res) => {
   try {
-    const userId = req.params.id;
+    const userId = new mongoose.Types.ObjectId(req.params.id); // ✅ FIX
 
-    await Message.updateMany(
+    const result = await Message.updateMany(
       {
         receiver: userId,
         read: false,
@@ -104,7 +123,26 @@ exports.markAsRead = async (req, res) => {
       },
     );
 
-    res.json({ success: true });
+    console.log("UPDATED:", result); // ✅ debug
+
+    res.json({ success: true, updated: result.modifiedCount });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+exports.getAdminInbox = async (req, res) => {
+  try {
+    const adminId = req.params.id;
+
+    const messages = await Message.find({
+      receiver: adminId,
+    })
+      .populate("sender", "name email")
+      .populate("receiver", "name email")
+      .sort({ createdAt: -1 });
+
+    res.json({ success: true, messages });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

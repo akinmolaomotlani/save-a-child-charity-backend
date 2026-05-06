@@ -28,6 +28,11 @@ const MessageSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    threadId: {
+      type: mongoose.Schema.Types.ObjectId,
+      required: true,
+      index: true,
+    },
   },
   { timestamps: true },
 );

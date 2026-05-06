@@ -1,5 +1,8 @@
 const User = require("../models/user");
 const bcrypt = require("bcryptjs");
+const crypto = require("crypto");
+
+const sendEmail = require("../utils/mailer");
 
 // CREATE USER
 exports.createUser = async (req, res) => {
@@ -13,15 +16,39 @@ exports.createUser = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const user = await User.create({
+    // ✅ generate token
+    const token = crypto.randomBytes(32).toString("hex");
+
+    // ✅ create user instance (NOT User.create)
+    const user = new User({
       name,
       email,
       password: hashedPassword,
       role: role || "user",
+
+      // ✅ ADD THESE
+      verificationToken: token,
+      verificationTokenExpires: Date.now() + 1000 * 60 * 60, // 1 hour
+      isVerified: false,
     });
 
+    await user.save();
+
+    // ✅ TODO: send email here (next step)
+    const verifyURL = `http://localhost:5000/verify?token=${token}`;
+
+    await sendEmail({
+      to: user.email,
+      subject: "Verify your account",
+      html: `
+    <h2>Hello ${user.name}</h2>
+    <p>Click below to verify your account:</p>
+    <a href="${verifyURL}">Verify Account</a>
+  `,
+    });
     res.status(201).json({
       success: true,
+      message: "User created. Please check your email to verify your account.",
       user: {
         _id: user._id,
         name: user.name,

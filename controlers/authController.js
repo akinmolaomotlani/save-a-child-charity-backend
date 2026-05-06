@@ -1,50 +1,75 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/user");
+const crypto = require("crypto");
+const nodemailer = require("nodemailer");
 
 // REGISTER
 exports.register = async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
-    // check if all fields are filled
     if (!name || !email || !password) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    // check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: "User already exists" });
     }
 
-    // hash password (security)
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // create user in DB
+    // 👇 GENERATE TOKEN HERE
+    const token = crypto.randomBytes(32).toString("hex");
+    const tokenExpires = Date.now() + 1000 * 60 * 60;
+
+    // 👇 INCLUDE IT HERE
     const user = await User.create({
       name,
       email,
       password: hashedPassword,
-      // role will default to "user"
+      verificationToken: token,
+      verificationTokenExpires: tokenExpires,
     });
 
-    // create token WITH role
-    const token = jwt.sign(
-      { id: user._id, role: user.role }, // 👈 ADDED ROLE
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+
+    const verificationLink = `http://localhost:3000/verify-email?token=${token}`;
+
+    // ✅ SEND EMAIL HERE
+    await transporter.sendMail({
+      to: user.email,
+      subject: "Verify your email",
+      html: `
+        <p>Click the link below to verify your email:</p>
+        <a href="${verificationLink}">${verificationLink}</a>
+      `,
+    });
+
+    // JWT (login token)
+    const jwtToken = jwt.sign(
+      { id: user._id, role: user.role },
       process.env.JWT_SECRET || "secretkey",
       { expiresIn: "7d" },
     );
 
     res.status(201).json({
-      message: "User registered successfully",
-      token,
+      message: "User registered successfully. Please verify your email.",
+      token: jwtToken,
       user: {
         id: user._id,
         name: user.name,
         email: user.email,
-        role: user.role, // 👈 RETURN ROLE
+        role: user.role,
       },
+      verificationToken: token, // ⚠️ only for testing (remove in production)
     });
   } catch (err) {
     console.error(err);
@@ -57,7 +82,6 @@ exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // check inputs
     if (!email || !password) {
       return res.status(400).json({ message: "Email and password required" });
     }
@@ -68,15 +92,22 @@ exports.login = async (req, res) => {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
+    // 🔥 ADD THIS HERE (IMPORTANT)
+    if (!user.isVerified) {
+      return res.status(403).json({
+        message: "Please verify your email first",
+      });
+    }
+
     // compare password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
-    // create token WITH role
+    // create token
     const token = jwt.sign(
-      { id: user._id, role: user.role }, // 👈 ADDED ROLE
+      { id: user._id, role: user.role },
       process.env.JWT_SECRET || "secretkey",
       { expiresIn: "7d" },
     );
@@ -88,7 +119,7 @@ exports.login = async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
-        role: user.role, // 👈 RETURN ROLE
+        role: user.role,
       },
     });
   } catch (err) {
