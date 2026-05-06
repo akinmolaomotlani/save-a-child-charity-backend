@@ -5,67 +5,67 @@ const crypto = require("crypto");
 const sendEmail = require("../utils/mailer");
 
 // CREATE USER
-exports.createUser = async (req, res) => {
-  try {
-    const { name, email, password, role } = req.body;
+// exports.createUser = async (req, res) => {
+//   try {
+//     const { name, email, password, role } = req.body;
 
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ message: "User already exists" });
-    }
+//     const existingUser = await User.findOne({ email });
+//     if (existingUser) {
+//       return res.status(400).json({ message: "User already exists" });
+//     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+//     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // ✅ generate token
-    const token = crypto.randomBytes(32).toString("hex");
+//     // ✅ generate token
+//     const token = crypto.randomBytes(32).toString("hex");
 
-    // ✅ create user instance (NOT User.create)
-    const user = new User({
-      name,
-      email,
-      password: hashedPassword,
-      role: role || "user",
+//     // ✅ create user instance (NOT User.create)
+//     const user = new User({
+//       name,
+//       email,
+//       password: hashedPassword,
+//       role: role || "user",
 
-      // ✅ ADD THESE
-      verificationToken: token,
-      verificationTokenExpires: Date.now() + 1000 * 60 * 60, // 1 hour
-      isVerified: false,
-    });
+//       // ✅ ADD THESE
+//       verificationToken: token,
+//       verificationTokenExpires: Date.now() + 1000 * 60 * 60, // 1 hour
+//       isVerified: false,
+//     });
 
-    await user.save();
+//     await user.save();
 
-    // ✅ TODO: send email here (next step)
-    const verifyURL = `https://save-a-child-charity-backend.onrender.com/verify?token=${token}`;
+//     // ✅ TODO: send email here (next step)
+//     const verifyURL = `https://save-a-child-charity-backend.onrender.com/verify?token=${token}`;
 
-    try {
-      await sendEmail({
-        to: user.email,
-        subject: "Verify your account",
-        html: `
-      <h2>Hello ${user.name}</h2>
-      <p>Click below to verify your account:</p>
-      <a href="${verifyURL}">Verify Account</a>
-    `,
-      });
-    } catch (err) {
-      // console.log("Email failed but user was created:", err.message);
+//     try {
+//       await sendEmail({
+//         to: user.email,
+//         subject: "Verify your account",
+//         html: `
+//       <h2>Hello ${user.name}</h2>
+//       <p>Click below to verify your account:</p>
+//       <a href="${verifyURL}">Verify Account</a>
+//     `,
+//       });
+//     } catch (err) {
+//       // console.log("Email failed but user was created:", err.message);
 
-      console.error("FULL EMAIL ERROR:", err);
-    }
-    res.status(201).json({
-      success: true,
-      message: "User created. Please check your email to verify your account.",
-      user: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-      },
-    });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
+//       console.error("FULL EMAIL ERROR:", err);
+//     }
+//     res.status(201).json({
+//       success: true,
+//       message: "User created. Please check your email to verify your account.",
+//       user: {
+//         _id: user._id,
+//         name: user.name,
+//         email: user.email,
+//         role: user.role,
+//       },
+//     });
+//   } catch (error) {
+//     res.status(500).json({ message: error.message });
+//   }
+// };
 
 // GET ALL USERS
 exports.getUsers = async (req, res) => {
@@ -123,36 +123,6 @@ exports.deleteUser = async (req, res) => {
     }
 
     res.json({ success: true, message: "User deleted" });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-// VERIFY USER
-exports.verifyUser = async (req, res) => {
-  try {
-    const { token } = req.query;
-
-    if (!token) {
-      return res.status(400).json({ message: "No token provided" });
-    }
-
-    const user = await User.findOne({
-      verificationToken: token,
-      verificationTokenExpires: { $gt: Date.now() },
-    });
-
-    if (!user) {
-      return res.status(400).json({ message: "Invalid or expired token" });
-    }
-
-    user.isVerified = true;
-    user.verificationToken = undefined;
-    user.verificationTokenExpires = undefined;
-
-    await user.save();
-
-    res.status(200).json({ message: "User verified successfully" });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

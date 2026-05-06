@@ -63,6 +63,8 @@ app.use(
       "http://localhost:5173",
       "https://save-a-child-charity-frontend.vercel.app",
     ],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
   }),
 );
@@ -80,8 +82,6 @@ app.use(
 
 // Routes
 app.use("/api/auth", authRoutes);
-app.use("/api/auth", require("./routes/authRoutes"));
-app.use("/", authRoutes);
 app.use("/api/donations", require("./routes/donationRoutes"));
 app.use("/api/volunteers", require("./routes/volunteerRoutes"));
 app.use("/api/payments", require("./routes/paymentRoutes"));
