@@ -31,7 +31,7 @@ exports.register = async (req, res) => {
       verificationTokenExpires: tokenExpires,
     });
 
-    const verificationLink = `${process.env.CLIENT_URL}/verify-email?token=${token}`;
+    const verificationLink = `${process.env.CLIENT_URL}/verify?token=${token}`;
 
     // send email (non-blocking)
     sendEmail({
@@ -117,9 +117,7 @@ exports.verifyUser = async (req, res) => {
     });
 
     if (!user) {
-      return res.redirect(
-        `${process.env.CLIENT_URL}/verify-email?success=false`,
-      );
+      return res.redirect(`${process.env.CLIENT_URL}/verify?success=false`);
     }
 
     user.isVerified = true;
@@ -128,10 +126,10 @@ exports.verifyUser = async (req, res) => {
 
     await user.save();
 
-    return res.redirect(`${process.env.CLIENT_URL}/verify-email?success=true`);
+    return res.redirect(`${process.env.CLIENT_URL}/verify?success=true`);
   } catch (error) {
     console.error(error);
 
-    return res.redirect(`${process.env.CLIENT_URL}/verify-email?success=false`);
+    return res.redirect(`${process.env.CLIENT_URL}/verify?success=false`);
   }
 };
