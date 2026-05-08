@@ -31,7 +31,7 @@ exports.register = async (req, res) => {
       verificationTokenExpires: tokenExpires,
     });
 
-    const verificationLink = `${process.env.CLIENT_URL}/verify?token=${token}`;
+    const verificationLink = `${process.env.CLIENT_URL}/verify-email?token=${token}`;
 
     // send email (non-blocking)
     sendEmail({
@@ -106,7 +106,9 @@ exports.verifyUser = async (req, res) => {
     const { token } = req.query;
 
     if (!token) {
-      return res.redirect(`${process.env.CLIENT_URL}/verify?success=false`);
+      return res.redirect(
+        `${process.env.CLIENT_URL}/verify-email?success=false`,
+      );
     }
 
     const user = await User.findOne({
@@ -115,7 +117,9 @@ exports.verifyUser = async (req, res) => {
     });
 
     if (!user) {
-      return res.redirect(`${process.env.CLIENT_URL}/verify?success=false`);
+      return res.redirect(
+        `${process.env.CLIENT_URL}/verify-email?success=false`,
+      );
     }
 
     user.isVerified = true;
@@ -124,8 +128,10 @@ exports.verifyUser = async (req, res) => {
 
     await user.save();
 
-    return res.redirect(`${process.env.CLIENT_URL}/verify?success=true`);
+    return res.redirect(`${process.env.CLIENT_URL}/verify-email?success=true`);
   } catch (error) {
-    return res.redirect(`${process.env.CLIENT_URL}/verify?success=false`);
+    console.error(error);
+
+    return res.redirect(`${process.env.CLIENT_URL}/verify-email?success=false`);
   }
 };
