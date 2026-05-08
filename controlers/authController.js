@@ -31,7 +31,9 @@ exports.register = async (req, res) => {
       verificationTokenExpires: tokenExpires,
     });
 
-    const verificationLink = `${process.env.CLIENT_URL}/verify?token=${token}`;
+    // const verificationLink = `${process.env.CLIENT_URL}/verify?token=${token}`;
+
+    const verificationLink = `${process.env.SERVER_URL}/api/auth/verify?token=${token}`;
 
     console.log("CLIENT_URL:", process.env.CLIENT_URL);
     console.log("Verification Link:", verificationLink);
@@ -106,7 +108,7 @@ exports.login = async (req, res) => {
 // ================= VERIFY USER =================
 exports.verifyUser = async (req, res) => {
   try {
-    const { token } = req.body;
+    const { token } = req.query;
 
     if (!token) {
       return res.redirect(
