@@ -33,6 +33,9 @@ exports.register = async (req, res) => {
 
     const verificationLink = `${process.env.CLIENT_URL}/verify?token=${token}`;
 
+    console.log("CLIENT_URL:", process.env.CLIENT_URL);
+    console.log("Verification Link:", verificationLink);
+
     // send email (non-blocking)
     sendEmail({
       to: email,
@@ -103,7 +106,7 @@ exports.login = async (req, res) => {
 // ================= VERIFY USER =================
 exports.verifyUser = async (req, res) => {
   try {
-    const { token } = req.query;
+    const { token } = req.body;
 
     if (!token) {
       return res.redirect(
