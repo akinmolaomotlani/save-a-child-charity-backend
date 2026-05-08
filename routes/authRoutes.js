@@ -7,6 +7,6 @@ router.post("/register", register);
 
 // LOGIN
 router.post("/login", login);
-router.post("/verify-email", verifyUser);
+router.post("/verify", verifyUser);
 
 module.exports = router;
