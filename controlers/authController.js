@@ -17,7 +17,7 @@ exports.register = async (req, res) => {
     if (existingUser) {
       return res.status(400).json({ message: "User already exists" });
     }
-
+    const isAdmin = email === "admin@saveachild.org";
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const token = crypto.randomBytes(32).toString("hex");
@@ -27,8 +27,14 @@ exports.register = async (req, res) => {
       name,
       email,
       password: hashedPassword,
-      verificationToken: token,
-      verificationTokenExpires: tokenExpires,
+
+      role: isAdmin ? "admin" : "user",
+
+      isVerified: isAdmin ? true : false,
+
+      verificationToken: isAdmin ? null : token,
+
+      verificationTokenExpires: isAdmin ? null : tokenExpires,
     });
 
     // const verificationLink = `${process.env.CLIENT_URL}/verify?token=${token}`;
