@@ -61,7 +61,7 @@ app.use(
   cors({
     origin: [
       "http://localhost:5173",
-      "https://save-a-child-charity-frontend-6vx7-g5wep5gds.vercel.app",
+      "https://save-a-child-charity-frontend-6vx7.vercel.app",
     ],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
