@@ -3,6 +3,9 @@ const Volunteer = require("../models/volunteer.js");
 // CREATE VOLUNTEER
 exports.createVolunteer = async (req, res) => {
   try {
+    console.log("BODY:", req.body);
+    console.log("FILE:", req.file);
+
     const {
       fullName,
       email,
@@ -22,19 +25,14 @@ exports.createVolunteer = async (req, res) => {
       });
     }
 
-    // HANDLE IMAGE
-    let image = "";
-
-    if (req.file) {
-      image = req.file.path;
-    }
+    // SAFE IMAGE PATH
+    const image = req.file ? req.file.path : "";
 
     const volunteer = await Volunteer.create({
       fullName,
       email,
       phone,
-      skills: typeof skills === "string" ? skills.split(",") : skills,
-
+      skills,
       availability,
       address,
       motivation,
@@ -42,12 +40,15 @@ exports.createVolunteer = async (req, res) => {
     });
 
     res.status(201).json({
-      message: "Volunteer application submitted",
+      success: true,
       volunteer,
     });
-  } catch (error) {
+  } catch (err) {
+    console.error("CREATE VOLUNTEER ERROR:", err);
+
     res.status(500).json({
-      message: error.message,
+      success: false,
+      message: err.message,
     });
   }
 };
