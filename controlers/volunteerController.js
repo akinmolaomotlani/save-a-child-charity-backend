@@ -1,4 +1,4 @@
-const Volunteer = require("../models/Volunteer");
+const Volunteer = require("../models/volunteer.js");
 
 // CREATE VOLUNTEER
 exports.createVolunteer = async (req, res) => {
