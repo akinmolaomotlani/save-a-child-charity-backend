@@ -12,7 +12,7 @@ const {
   approveVolunteer,
   rejectVolunteer,
   deleteVolunteer,
-} = require("../controllers/volunteerController");
+} = require("../controlers/volunteerController");
 
 // CREATE
 router.post("/", upload.single("image"), createVolunteer);
