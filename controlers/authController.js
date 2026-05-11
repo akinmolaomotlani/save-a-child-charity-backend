@@ -49,9 +49,123 @@ exports.register = async (req, res) => {
       to: email,
       subject: "Verify your email",
       html: `
-        <p>Click the link below to verify your email:</p>
-        <a href="${verificationLink}">${verificationLink}</a>
-      `,
+  <!DOCTYPE html>
+  <html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Verify your email</title>
+  </head>
+
+  <body style="
+    margin:0;
+    padding:0;
+    background-color:#f3f4f6;
+    font-family:Arial,sans-serif;
+  ">
+
+    <div style="
+      max-width:600px;
+      margin:40px auto;
+      background:#ffffff;
+      border-radius:10px;
+      padding:40px;
+      box-shadow:0 2px 10px rgba(0,0,0,0.05);
+    ">
+
+      <!-- Logo -->
+      <div style="text-align:center;margin-bottom:30px;">
+        <h1 style="
+          margin:0;
+          color:#4f46e5;
+          font-size:30px;
+        ">
+          Save A Child
+        </h1>
+      </div>
+
+      <!-- Heading -->
+      <h2 style="
+        color:#111827;
+        margin-bottom:20px;
+      ">
+        Verify your email
+      </h2>
+
+      <!-- Message -->
+      <p style="
+        color:#374151;
+        font-size:16px;
+        line-height:1.7;
+      ">
+        Thank you for signing up.
+      </p>
+
+      <p style="
+        color:#374151;
+        font-size:16px;
+        line-height:1.7;
+      ">
+        Please confirm your email address by clicking the button below.
+      </p>
+
+      <!-- Button -->
+      <div style="
+        text-align:center;
+        margin:35px 0;
+      ">
+        <a
+          href="${verificationLink}"
+          style="
+            background:#4f46e5;
+            color:white;
+            padding:14px 28px;
+            border-radius:8px;
+            text-decoration:none;
+            display:inline-block;
+            font-size:16px;
+            font-weight:bold;
+          "
+        >
+          Confirm my account
+        </a>
+      </div>
+
+      <!-- Fallback -->
+      <p style="
+        color:#6b7280;
+        font-size:14px;
+      ">
+        If the button doesn't work, copy and paste this link into your browser:
+      </p>
+
+      <p style="
+        word-break:break-all;
+        font-size:14px;
+      ">
+        <a href="${verificationLink}">
+          ${verificationLink}
+        </a>
+      </p>
+
+      <!-- Footer -->
+      <hr style="
+        border:none;
+        border-top:1px solid #e5e7eb;
+        margin:30px 0;
+      ">
+
+      <p style="
+        text-align:center;
+        color:#9ca3af;
+        font-size:13px;
+      ">
+        If you didn’t request this email, you can safely ignore it.
+      </p>
+
+    </div>
+  </body>
+  </html>
+  `,
     }).catch((err) => console.error("Email failed:", err));
 
     return res.status(201).json({
