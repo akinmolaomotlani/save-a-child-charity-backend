@@ -3,6 +3,8 @@ const Donation = require("../models/Donation");
 
 const verifyPayment = async (req, res) => {
   try {
+    console.log("BODY:", req.body);
+
     const { reference, name, email, amount } = req.body;
 
     const response = await axios.get(
@@ -14,12 +16,14 @@ const verifyPayment = async (req, res) => {
       },
     );
 
+    console.log("PAYSTACK RESPONSE:", response.data);
+
     const paystackData = response.data.data;
 
-    // Verify successful payment
     if (paystackData.status === "success") {
-      // Prevent duplicate payment records
       const existingDonation = await Donation.findOne({ reference });
+
+      console.log("EXISTING:", existingDonation);
 
       if (existingDonation) {
         return res.json({
@@ -28,7 +32,6 @@ const verifyPayment = async (req, res) => {
         });
       }
 
-      // Save donation
       const donation = await Donation.create({
         name,
         email,
@@ -37,6 +40,8 @@ const verifyPayment = async (req, res) => {
         status: "success",
         paidAt: new Date(),
       });
+
+      console.log("DONATION SAVED:", donation);
 
       return res.json({
         status: true,
@@ -50,7 +55,7 @@ const verifyPayment = async (req, res) => {
       message: "Payment not successful",
     });
   } catch (error) {
-    console.log(error);
+    console.log("VERIFY ERROR:", error.response?.data || error.message);
 
     res.status(500).json({
       status: false,
