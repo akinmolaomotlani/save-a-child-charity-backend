@@ -80,7 +80,6 @@ app.use(
 app.use("/api/auth", authRoutes);
 app.use("/api/donations", require("./routes/donationRoutes"));
 app.use("/api/volunteers", require("./routes/volunteerRoutes"));
-app.use("/api/payments", require("./routes/paymentRoutes"));
 app.use("/api/users", userRoutes);
 app.use("/api/messages", messageRoutes);
 

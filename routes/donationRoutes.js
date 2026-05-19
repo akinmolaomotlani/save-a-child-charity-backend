@@ -3,6 +3,6 @@ const router = express.Router();
 
 const { verifyPayment } = require("../controlers/donationController");
 
-router.post("/verify", verifyPayment);
+router.post("/donations", verifyPayment);
 
 module.exports = router;
