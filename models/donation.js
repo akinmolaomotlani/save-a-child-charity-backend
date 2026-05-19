@@ -2,19 +2,35 @@ const mongoose = require("mongoose");
 
 const donationSchema = new mongoose.Schema(
   {
-    donorName: String,
-    email: String,
-    amount: Number,
-    currency: {
+    name: {
       type: String,
-      default: "usd",
+      required: true,
     },
+
+    email: {
+      type: String,
+      required: true,
+    },
+
+    amount: {
+      type: Number,
+      required: true,
+    },
+
+    reference: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+
     status: {
       type: String,
-      enum: ["pending", "completed", "failed"],
       default: "pending",
     },
-    paymentIntentId: String,
+
+    paidAt: {
+      type: Date,
+    },
   },
   { timestamps: true },
 );
