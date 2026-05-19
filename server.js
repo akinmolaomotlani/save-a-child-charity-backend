@@ -9,7 +9,6 @@ const http = require("http"); // ✅ NEW
 const { Server } = require("socket.io"); // ✅ NEW
 
 const connectDB = require("./config/db");
-const stripeWebhook = require("./webhooks/stripeWebhook");
 const messageRoutes = require("./routes/messageRoutes");
 const userRoutes = require("./routes/userRoutes");
 const authRoutes = require("./routes/authRoutes");
@@ -49,9 +48,6 @@ io.on("connection", (socket) => {
 
 // ✅ MAKE IO AVAILABLE IN ROUTES
 app.set("io", io);
-
-// ✅ Stripe webhook MUST come before express.json()
-app.post("/webhook", express.raw({ type: "application/json" }), stripeWebhook);
 
 // Security
 app.use(helmet());
